@@ -1,34 +1,29 @@
 #Implementa os bancos de dados necessários para o programa principal 
-
+#Primeira alteração - fork 1 
 #Documentando a abertura do banco para consultas futuras
 # 1 importar o sqlite3 
 # 2 -Abrir a conexao com o banco
 # a variavel conn vai receber o interpetador de banco de dados criado pelo comando do sqlite3 e armazenado no arquivo rdvs.db
 # Use o método connect ()
-# conn = sqlite3.connect('rdvs.db')
+# conexao = sqlite3.connect('pizza.db')
 # 3 - Definindo um cursor (Cursor � como um localizador para as inserções decomando dentro da interface do sqlite3
 # Use o método cursor ()
-# cursor = conn.cursor()
+# cursor = conexao.cursor()
 # 4 - Executa a consulta 
 # Use o método execute ()
 # cursor.execute()
 # 5 - Extraia o resultado usando fetchall ()
-# 6 - Fechar o cursor e os objetos de conexão.
+# 6 - Fechar o cursor e os objetos de conexão(definimos um metodo fechar_conexao(conexao).
 # cursor.close()
-# conn.close()
+# conexao.close()
 # 7 - Capture a exceção do banco de dados, se houver alguma que possa ocorrer durante o processo de conexão.
 #Importando pandas para analises em conjunto com o sql
+
+
 import pandas as pd
 #Importa as bibliotecas para trabalhar com o sqlite3
 import sqlite3
- #Cria uma funcao para povoar o banco de dados CLIENTES A PARTIR DE UM ARQUIVO .csv
-#gera um objeto do tipo file
-#arquivo de entrada para povoar a tabela funcionarios
-arquivo = open("pedidos.csv", "r")
-#faz a variável lista conter o conteudo de arquivo como lista.
-lista = arquivo.readlines()
-
-#Arquivo do Banco de Dados
+#Arquivo do Banco de Dados, utilizado em todos sa funcoes
 arquivo_db = 'pizza.db'
 #Fazendo de modo elegante a abertura e fechamento de conexao
 #Cria uma rotina para iniciar a conexao e trata os erros
@@ -47,312 +42,209 @@ def fechar_conexao(conexao):
 
 
 # #####CRIACAO DAS TABELA UTILIZADAS PARA O PROGRAMA
-# criando a tabela (schema)
+#Cria a tabela de PESSOAS
+def criaPessoas():
+ # Iniciando a Conexão 
+  conexao = iniciar_conexao()
+  #definindo um cursor
+  cursor = conexao.cursor()
+  #apaga se ja existir a tabela PESSOAS
+  cursor.execute(""" DROP TABLE IF EXISTS PESSOAS """)
+  # criando a tabela (PESSOAS)
+  cursor.execute("""
+        CREATE TABLE PESSOAS (
+        id_pessoa   INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome        TEXT,
+        telefone1   TEXT,
+        telefone2   TEXT,
+        datacad     TEXT,
+        id_endereco INTEGER,
+        FOREIGN KEY ( id_endereco   )  REFERENCES ENDERECO (id_endereco) 
+                );
+        """)
+  print('Tabela PESSOAS criada com sucesso.')
+
+  fechar_conexao(conexao)
+
+#CRIANDO A TABELA ENDERECO PARA SEPARAR OS ENDEREÇOS DOS DADOS DAS PESSOAS
+def criaEndereco():
+  # Iniciando a Conexão 
+  conexao = iniciar_conexao()
+  #definindo um cursor
+  cursor = conexao.cursor()
+  cursor.execute("""
+    CREATE TABLE ENDERECO (
+    id_endereco INTEGER PRIMARY KEY AUTOINCREMENT,
+    cep         TEXT    NOT NULL,
+    logradouro  TEXT,
+    numero      TEXT,
+    complemento TEXT,
+    referencia  TEXT,
+    bairro      TEXT
+    );
+  """)
+  print('Tabela ENDERECO criada com sucesso.')
+  fechar_conexao(conexao)
+
+# criando a tabela CLIENTES
 
 def criaClientes():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
-  # conectando...
-        conn = sqlite3.connect('clientes.db')
-        # definindo um cursor
-        cursor = conn.cursor()
-        #Se já existir a tabela exclui
-        cursor.execute(""" DROP TABLE IF EXISTS CLIENTES""")
-        # criando a tabela CLIENTES
-        cursor.execute("""
-        CREATE TABLE CLIENTES (
-        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        idade INTEGER,
-        cpf     VARCHAR(11) NOT NULL,
-        email TEXT NOT NULL,
-        fone TEXT,
-        cidade TEXT,
-        uf VARCHAR(2) NOT NULL,
-        criado_em DATE NOT NULL
-        );
-        """)
-
+  #Se já existir a tabela exclui
+  cursor.execute(""" DROP TABLE IF EXISTS CLIENTES""")
+  # criando a tabela CLIENTES
+  cursor.execute("""
+     CREATE TABLE CLIENTES (
+     id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+     id_pessoa INTEGER,
+     vendedor_principal INTEGER,
+     FOREIGN KEY (id_pessoa) REFERENCES PESSOA(id_pessoa), 
+     FOREIGN KEY (vendedor_principal) REFERENCES VENDEDOR(id_vendedor)
+     );
+      """)
   print('Tabela CLIENTES criada com sucesso.')
-  #Se existir uma tabela FUNCIONARIOS, exclui
+  
   #o comando cursor.execute, só roda uma instrução por vez!
   fechar_conexao(conexao)
   
-
-#Cria a tabela de CDVS
-def criaCdv():
+#Cria a tabela de ENTREGADORES 
+def criaEntregadores():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
   #apaga se ja existir a tabela CDV
-  cursor.execute(""" DROP TABLE IF EXISTS CDVS """)
+  cursor.execute(""" DROP TABLE IF EXISTS ENTREGADORES """)
   cursor.execute("""
-  CREATE TABLE IF NOT EXISTS CDVS (
-    num_cdv int(10) NOT NULL,
-    data_print TEXT,
-    matricula INT, 
-    data_origem TEXT,
-    hora_origem  TEXT,
-    data_destino TEXT,
-    hora_destino  TEXT,
-    diarias_viagem FLOAT,
-    diarias_hospedagem FLOAT,
-    valor_adiant FLOAT,
-    data_adiant TEXT,
-    id_DespViajante INT NOT NULL,
-    valor_reembolso FLOAT,
-    despesa_viagem FLOAT,
-    statusCod INT(2),  
-    PRIMARY KEY (num_cdv),
-    FOREIGN KEY(matricula) REFERENCES FUNCIONARIOS(matricula),
-    FOREIGN KEY(statusCod) REFERENCES STATUSCOD(statusCod)
-    );
+  CREATE TABLE ENTREGADORES (
+  id_entregador INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_pessoa INTEGER,
+  FOREIGN KEY (id_pessoa) REFERENCES PESSOAS(id_pessoa)
+  );
   """)
-  print("Tabela CDVS criada com sucesso.")
+  print('Tabela ENTREGADORES criada com sucesso.')
+  #o comando cursor.execute, só roda uma instrução por vez!
   fechar_conexao(conexao)
 
-#Cria a tabela de STATUSCOD que irá conter os códigos aplicaveis ao CDV
-def criaStatusCod():
+
+#Cria a tabela de VENDEDORES 
+def criaVendedores():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
   #apaga se ja existir a tabela CDV
-  cursor.execute(""" DROP TABLE IF EXISTS STATUSCOD """)
+  cursor.execute(""" DROP TABLE IF EXISTS VENDEDORES """)
   cursor.execute("""
-  CREATE TABLE IF NOT EXISTS STATUSCOD (
-    statusCod INT(2) NOT NULL PRIMARY KEY,
-    descricao TEXT
-    );
+  CREATE TABLE VENDEDORES (
+  id_vendedor INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_pessoa   INTEGER,
+  FOREIGN KEY (id_pessoa) REFERENCES PESSOAS (id_pessoa) 
+  );
   """)
-  print("Tabela STATUSCOD criada com sucesso.")
-  #Coloca os valores pdrões do STATUSCOD 
-  cursor.execute(""" INSERT INTO STATUSCOD VALUES  (1, 'DEVOLVIDO AO VIAJANTE'),  (2,'AGUARDANDO APROVAÇÃO NÍVEL 1' ), (3,'AGUARDANDO APROVAÇÃO NÍVEL 2' ), (4,'APROVAÇÃO FINAL NÍVEL 1' ), (5,'APROVAÇÃO FINAL NÍVEL 2'), (6,'CANCELADO'), (7,'OUTRO/DESCONHECIDO');  """)
-  #Consolida no BD
-  conexao.commit()
-  print("Valores padrão da tabela STATUSCOD inseridos com sucesso.")
+  print('Tabela VENDEDORES criada com sucesso.')
   fechar_conexao(conexao)
   
 #Cria a tabela de LOG que ira conter o histórico do RDV no sistema
-def criaLOG():
+def criaPizza():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
   #apaga se ja existir a tabela CDV
-  cursor.execute(""" DROP TABLE IF EXISTS LOG """)
-  cursor.execute("""
-  CREATE TABLE IF NOT EXISTS LOG (
-    id_log INT NOT NULL PRIMARY KEY,
-    data_stamp TEXT,
-    nCDV INT(10) NOT NULL, 
-    statusCod INT,
-    id_DespViajante INT NOT NULL,
-    valor_reembolso FLOAT,
-    conferente INT NOT NULL,
-    FOREIGN KEY(nCDV) REFERENCES CDV(num_cdv),
-    FOREIGN KEY(conferente) REFERENCES FUNCIONARIOS(matricula),
-    FOREIGN KEY(statusCod) REFERENCES STATUSCOD(statusCod)
-    );
+  cursor.execute(""" DROP TABLE IF EXISTS PIZZA """)
+  #CRIANDO A TABELA PIZZA
+  cursor.execute(""" 
+  CREATE TABLE PIZZA (
+    id_pizza INT (2)   NOT NULL,
+    preco    FLOAT (2) NOT NULL,
+    sabor    TXT,
+    PRIMARY KEY ( id_pizza )
+   );
+   """)
+  print('Tabela PIZZA criada com sucesso.')
+  #já insere os sabores padrão o banco:
+  cursor.execute(""" 
+  INSERT INTO PIZZA VALUES
+  (001,35,'CALABRESA'),
+  (002,35,'QUEIJO'),
+  (003,35,'LOMBINHO'),
+  (004,35,'MISTA');
   """)
-  print("Tabela LOG criada com sucesso.")
   fechar_conexao(conexao)
 
-#Criacao da tabela DESPVIAJANTE que irá conter os itens de despesas que ocorreram por conta do funcionario em determinada viagem
-def criaDespViajante():
+#CRIACAO DA TABELA DE PEDIDO (cada linha é um item de um determinado pedido)
+# Essas tabela contem todos os atributos/colunas  
+#id_item identificador unico de cada linha (chave primaria)
+#nro_pedido - numero do pedido 
+#data - data do pedido
+#id_cliente - código do cliente que fez o pedido
+#id_vendedor - código do vendedor que fez a venda
+#id_entregador - código do entregador que irá entregar
+#id_pizza	- produto/item pedido 
+#qtde - quantidade do item 
+#obs - observações sobre o produto/item
+#endereco_entrega -  local  de entrega da pizza; chave estrangeira de um endereco cadastrado
+
+#Criacao da tabela PEDIDOS que irá conter os itens pedidos
+def criaPedidos():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
   #apaga se ja existir a tabela DESPVIAJANTE
-  cursor.execute(""" DROP TABLE IF EXISTS DESPVIAJANTE """)
+  cursor.execute(""" DROP TABLE IF EXISTS PEDIDOS """)
+  #CRIANDO A TABELA PEDIDOS
   cursor.execute("""
-  CREATE TABLE IF NOT EXISTS DESPVIAJANTE (
-    id_desp INT NOT NULL PRIMARY KEY,
-    nCDV INT(10) NOT NULL, 
-    id_comprovante TEXT,
-    tipo TEXT,
-    valor FLOAT,
-    FOREIGN KEY(nCDV) REFERENCES CDV(num_cdv)
-    );
-  """)
-  print("Tabela DESPVIAJANTE criada com sucesso.")
-  fechar_conexao(conexao)
-
-
-#Criacao da Tabela de DIARIAS
-# Essas tabela contem todos os atributos/colunas  
-#cod -  chave primaria
-#tipo - tipo de diaria 
-#valor - valor da diaria
-def criaDiarias():
-  # Iniciando a Conexão 
-  conexao = iniciar_conexao()
-  #definindo um cursor
-  cursor = conexao.cursor()
-  #apaga se ja existir a tabela CDV
-  #DESTROI A TABELA DIARIAS SE ELA JÁ EXISTIR - PARA ATULIZAR POSTERIORMENTE
-  cursor.execute(""" DROP TABLE IF EXISTS DIARIAS """)
-  cursor.execute("""
-  CREATE TABLE DIARIAS (
-  cod int(3) NOT NULL,
-  regiao text NOT NULL,
-  viagem int NOT NULL,
-  hospedagem int NOT NULL,
-  PRIMARY KEY (cod)
+  CREATE TABLE PEDIDOS (
+  id_item          INTEGER PRIMARY KEY AUTOINCREMENT,
+  nro_pedido       INT,
+  data             TEXT,
+  id_cliente       INT,
+  id_vendedor      INT,
+  id_entregador    INT,
+  id_pizza         INT (2),
+  qtde             INT (3),
+  obs              TEXT,
+  endereco_entrega INT,
+  FOREIGN KEY (id_cliente)
+  REFERENCES CLIENTES (id_cliente),
+  FOREIGN KEY (id_vendedor)
+  REFERENCES VENDEDORES (id_vendedor),
+  FOREIGN KEY (id_entregador)
+  REFERENCES ENTREGADORES (id_entregador),
+  FOREIGN KEY (id_pizza )
+  REFERENCES PIZZA (id_pizza),
+  FOREIGN KEY (endereco_entrega)
+  REFERENCES ENDERECO (id_endereco) 
   );
   """)
-  print("Tabela DIARIAS criada com sucesso.")
-  
-  #Coloca os valores pdrões de viagem 
-  cursor.execute(""" INSERT INTO DIARIAS VALUES  (001, 'CAPITAL', 96, 250),  (002, 'INTERIOR', 72, 185);  """)
-  #Consolid no BD
-  conexao.commit()
-  print("Valores padrão da tabela de DIARIAS inseridos com sucesso.")
-  fechar_conexao(conexao)
-
-#Cria a tabela de DEMANDA
-#que mapeia a relação de quem e quando foi solicitada a conferência do CDV
-def criaDemanda():
-  # Iniciando a Conexão 
-  conexao = iniciar_conexao()
-  #definindo um cursor
-  cursor = conexao.cursor()
-  #apaga se ja existir a tabela CDV
-  cursor.execute(""" DROP TABLE IF EXISTS DEMANDA """)
+  print('Tabela PEDIDOS criada com sucesso.')
+  #cria um registro inicial de pedido 
   cursor.execute("""
-  CREATE TABLE IF NOT EXISTS DEMANDA (
-    num_id int NOT NULL,
-    num_cdv int(10) NOT NULL,
-    data_solicitada TEXT,
-    mat_solicitante INT, 
-    meio TEXT,
-    PRIMARY KEY (num_id),
-    FOREIGN KEY(mat_solicitante) REFERENCES FUNCIONARIOS(matricula),
-    FOREIGN KEY(num_cdv) REFERENCES CDV(num_cdv)
-    );
+  INSERT INTO PEDIDO VALUES (NULL,0,'2022-08-23',0,0,0,001,1,'PRIMEIRO PEDIDO  - SOMENTE TESTE', 1)
   """)
-  print("Tabela DEMANDA criada com sucesso.")
   fechar_conexao(conexao)
 
-#--------------------------
-#FUNÇÕES COMPLEMENTARES DE CONSULTA E AFINS
-#devolve o valor da tabela de diáriadeviagem
-def voltaDiarias():
+
+#Cria uma lista de pedidos de teste
+#que mapeia a relação de quem e quando foi solicitada a conferência do CDV
+def clientesTeste():
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
   cursor = conexao.cursor()
-  #apaga se ja existir a tabela CDV
-  #Verificando os dados da tabela de diarias de viagem
-  cursor.execute(""" SELECT * FROM DIARIAS """)
-  #cursor é um objeto, para deixa-lo legivel tem que fazer um iterador com fetchall
-  for linha in cursor.fetchall():
-    print(linha)
+  cursor.execute("""
+    INSERT INTO CLIENTES (?,?,?)
+    VALUES (a,b,c)
+    """)
+
   fechar_conexao(conexao)
 
-#Dado o tipo da Diária, devolve o valor presente na tabela
-def voltaValorDiaria(tipo):
-  # Iniciando a Conexão 
-  conexao = iniciar_conexao()
-  #definindo um cursor
-  cursor = conexao.cursor()
-  #apaga se ja existir a tabela CDV
-  #Verificando os dados da tabela de diarias de viagem
-  consulta = "SELECT viagem FROM DIARIAS WHERE regiao = \""+tipo+"\""
-  cursor.execute(consulta)
-  saida = cursor.fetchone()[0]
-  fechar_conexao(conexao)
-  return saida
- #return(linha)
-
-#Dado o tipo da Diária, devolve o valor de diária de hospedagem
-def voltaValorHospedagem(tipo):
-  # Iniciando a Conexão 
-  conexao = iniciar_conexao()
-  #definindo um cursor
-  cursor = conexao.cursor()
-  #apaga se ja existir a tabela CDV
-  #Verificando os dados da tabela de diarias de viagem
-  consulta = "SELECT hospedagem FROM DIARIAS WHERE regiao = \""+tipo+"\""
-  cursor.execute(consulta)
-  saida = cursor.fetchone()[0]
-  fechar_conexao(conexao)
-  return saida
- #return(linha)
-
-#Retorna o nome de todos os funcionarios no banco
-def voltaFunc():
-  # Iniciando a Conexão 
-  conexao = iniciar_conexao()
-  #definindo um cursor
-  cursor = conexao.cursor()
-  #Verificando os dados da tabela de diarias de viagem
-  cursor.execute(""" SELECT nome FROM FUNCIONARIOS """)
-  #cursor é um objeto, para deixa-lo legivel tem que fazer um iterador com fetchall
-  todos = cursor.fetchall()
-  saida = []
-  for linha in todos: 
-    saida.append(linha[0])
-  fechar_conexao(conexao)
-  return(saida)
-  
-
-
-#POVOAMENTO DA TABELA FUNCIONARIOS COM UMA LISTA 
-# Observações: abroe fecho o banco dentro do procedimento 
-def povoa_func(lista_arquivo):
-    # Iniciando a Conexão 
-    conexao = iniciar_conexao()
-    #definindo um cursor
-    cursor = conexao.cursor()  
-    #para cada linha do arquivo
-    nlinha = 0
-    for linha in lista_arquivo:
-        #imprime o contador nlinha
-        #print("linha: "+str(nlinha))      
-        #quebrando a linha de acordo com o separador do arquivo 
-        item = linha.split(';')
-        nomeI = item[0]
-        matriculaI = (item[1])
-        uoI = item[2]
-        nome_uoI = item[3]
-        regraPHTI = item[4]
-        areaPHTI = item[5]
-        subareaI = item[6]
-        grupoEmpI = item[7]
-        subgrupoEmpI = item[8]
-        telefoneI = item[9]
-        #se não tiver o campo de telefone, faz aparecer NA
-        if telefoneI == "": telefoneI = "NA"
-        emailI = item[10]
-        #trata o ultimo elemento para tirar a quebra de linha
-        emailI = emailI[0:-1]
-        #print(emailI)
-        #print(nomeI)
-        #print(item[0:11])
-        #print(nomeI+','+matriculaI+','+telefoneI+','+emailI+','+uoI)
-        if nlinha !=0:
-            matriculaI = int(matriculaI)
-            #print("Número de linha Diferente de zero")
-            #Monta a consulta de inserção SQL
-            ##INSERT INTO FUNCIONARIOS (nome, matricula, uo, nome_uo, regraPHT, areaPHT, subarea, grupoEmp, subgrupoEmp, telefone, email)
-            cursor.execute("""
-            INSERT INTO FUNCIONARIOS 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-            """ , (nomeI, matriculaI, uoI, nome_uoI, regraPHTI, areaPHTI, subareaI, grupoEmpI, subgrupoEmpI, telefoneI, emailI))
-            #Grava no bd
-            #print("conexao.commit()")
-            conexao.commit()
-        #incrementa o contador de linhas
-        nlinha = nlinha + 1
-    print("Dados inseridos com sucesso.")
-    #Fecha o cursor
-    fechar_conexao(conexao)
-
+#Funções e Procedimentos auxiliares
 #Verificando todas as tabelas criadas do bd
 def verificaBD():
   # Iniciando a Conexão 
@@ -388,50 +280,161 @@ def consultaSQL(consulta):
 
   fechar_conexao(conexao)  
   return(saida)
+
+#Trabalhando com data
+#conversor de formato de Data BRL to US
+def dataBRtoUS(dataBR):
+  s = dataBR.split("/")
+  #print(s)
+  usdata = s[2]+'-'+s[1]+'-'+s[0]
+  #print(usdata)
+  return(usdata)
+
+
+
+
+
+#--------------------------
+# #############################  A FAZER PARA INCORPORAR PELO MENOS A MAIORIA DOS PEDIDOS ANTIGOS
+# FUNCAO: POVOAR o BANCO DE DADOS  A PARTIR DE UM ARQUIVO CSV
+#DADO UM ARQUIVO (arquivo.csv) DE TEXTO CSV COM AS PESSOAS, 
+# CRIA UMA TABELA PESSOA COM TODAS AS PESSOAS, E SETA A TABELA CLIENTES COM TODAS AS PESSOAS TAMBÉM)
+#cada linha do arquivo deve ser 'quebrada' em duas listas para contemplar o modelo de bd criado
+#uma pessoa possui um endereço principal, que é um  apontador para um campo endereço mais detalhado.
+# #Formato da linha csv:NOME ;TELEFONE1 ;TELEFONE2;CEP;ENDEREÇO;NÚMERO;COMPLEMENTO;REFERÊNCIA;BAIRRO;DATACADASTRO
+#
+#POVOAMENTO DA TABELAS DE PESSOAS, CLIENTES e ENDEREÇO PRINCIPALA PARTIR DE UM ARQUIVO .csv
+# Observações: abre fecho o banco dentro do procedimento 
+
+#Abordagem 1: 
+#1.1 - Transformando o csv em um dataframe pandas.
+#1.2 - Operar as colunas e criar daatframes "espelhos" do modelo SQL utilizado
+#1.3 - Transformar os dataframes espelhos em tabelas SQL de fato
+#1.4 - Testar o BD
+
+#caminho do arquivo de entrada para povoar a tabela pessoas
+cam_csv = ('D:\\Thiago\\Meus Programas\\Python\\Projetos\\PIZZA\\planilhas_base\\Pessoas.csv')
+
+def povoa_inicial1(cam_csv):
+  #le o csv e coloca a primeira linha como cabecalho
+  dataset = pd.read_csv(cam_csv, sep=';', header=0)
   
-def voltaMatricula(nome):
+  #Imprime as 5 primeiras linhas do dataset
+  a = dataset.head()
+  print(a)
+  
+  # Atributo columns retorna o nome das colunas do dataframe.
+  b = dataset.columns
+  print(b)
+  #manipulaNDO  o data set para gerar datasets espelho das tabelas
+    
+  #cria uma coluna no dataset que vai ser o id_endereco de PESSOAS e PK de ENDERECO
+
+povoa_inicial1(cam_csv)
+
+
+
+
+
+
+#Abordagem 2: 
+# 2.1 - Importar o arquivo csv para uma lista de linhas, abrir a conexao com o bd
+# 
+# 2.2 - Dividir cada linha conforme seu conteudo (PESSOA, ENDERECO) já  gerando 
+#     as consultas de inserção SQL na Tabela PESSOAS e ENDERECO do modelo
+# 2.3 - Incluir cada pessoa como cliente, colocar GEADEL como vendedor e cliente principal
+# 2.4 - Fechar a conexao e testar o BD
+
+arquivo = open(cam_csv, "r")
+
+#db = nome da base de dados
+#(arquivo)
+
+def povoa_inicial2(arquivo):
   # Iniciando a Conexão 
   conexao = iniciar_conexao()
   #definindo um cursor
-  cursor = conexao.cursor()  
-  cons = "SELECT matricula FROM FUNCIONARIOS WHERE nome = \""+ nome + "\" "
-  #cons = ""+ consulta +""
-  cursor.execute(cons)
-  #Vamos colocar o commit no caso de alteração com insert e update ja consolidar
-  conexao.commit()
-  saida = []
-  #cursor é um objeto, para deixa-lo legivel tem que fazer um iterador
-  #for linha in cursor.fetchall(): print(linha)
+  cursor = conexao.cursor() 
+  #transforma o arquivo em uma lista de elementos, cada elemento é uma linha
+  lista = arquivo.split("\n") 
+  nlinha = 0
+  for linha in lista:
+    #imprime o contador nlinha
+    #print("linha: "+str(nlinha))      
+    #quebrando a linha de acordo com o separador do arquivo 
+    item = linha.split(';')
+    nome = item[0]
+    tel1 = (item[1])
+    tel2 = item[2]
+    cep = item[3]
+    logradouro = item[4]
+    num = item[5]
+    complemento = item[6]
+    referencia = item[7]
+    bairro = item[8]
+    #normaliza a data BRL to US
+    datacadastro = dataBRtoUS(item[9])
+    id_end = nlinha
+    #trata o ultimo elemento para tirar a quebra de linha
+    #Monta a consulta de inserção SQL na tabela PESSOAS
+    cursor.execute("""
+      INSERT INTO PESSOAS 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+      """ , (nlinha, nome, tel1, tel2, datacadastro, id_end))
+    #Grava no bd
+    conexao.commit()
+    
+    #Monta a consulta de inserção SQL na tabela ENDERECO
+    cursor.execute("""
+      INSERT INTO ENDERECO 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+      """ , (id_end, cep, logradouro, num, complemento, referencia, bairro))
+    #Grava no bd
+    conexao.commit()
+    #incrementa o contador de linhas (que tambem é o id_endereco)
+    nlinha = nlinha + 1
   
-  for linha in cursor.fetchall(): 
-    #jeito deselegante
-    #elem = linha[0]
-    #saida = saida + [elem]
-    #ou com metodo
-    #jeito elegante
-    saida.append(linha[0])
+  #Avisa que incluiuos dados
+  print("Dados inseridos com sucesso em PESSOAS E ENDERECO.")
+  #Fecha a conexao
+  fechar_conexao(conexao)
+  #Coloca o Geadel (posicao 1 do arquivo csv) como o vendedor principal 
+  vp =  "INSERT INTO VENDEDOR VALUES(NULL,1)"
+  consultaSQL(vp)
+  #Coloca o Geadel como entregador principal
+  ep =  "INSERT INTO ENTREGADOR VALUES(NULL,1)"
+  consultaSQL(ep)
+  #Insere cada pessoa colocada na tabela Pessoa (id_pessoa) na tabela CLIENTE
+  #Insere uma consulta para inserir também na tabela CLIENTE
+	#Pega uma lista de Ids
+  ids = consultaSQL("SELECT id_pessoa FROM PESSOA")
+  for n in ids:
+    consulta = "INSERT INTO CLIENTE VALUES(NULL,"+ n +",1)"
+    consultaSQL(consulta)  
 
-  fechar_conexao(conexao)  
-  return(saida)  
   
-#Insere instancias de exemplo na tabela CDVs para teste
-def instancia_exemplo():
-  instancia = "INSERT INTO CDVS(num_cdv, data_print, matricula, data_origem, hora_origem, data_destino, hora_destino, diarias_viagem, diarias_hospedagem,valor_adiant,data_adiant,id_DespViajante,valor_reembolso,despesa_viagem,statusCod) VALUES (3000123,'2022-07-31','22530','2022-04-01','8:00','2022-04-03','18:00',1,1,0,'2022-01-01',0,0,36.00,7);"
-  consultaSQL(instancia)
 
-#Dado os dados de uma tabela demanda, insere no BD
-def InsereDemanda():
-  print('ok')
 
+
+
+
+
+
+
+
+   
+
+
+###
+#CRIACAO INICIAL DO BD E TESTES DE POVOAMETO
 #Cria todos os bancos de dados do programa
 def criaBD():
-  criaFunc()
-  criaStatusCod()
-  criaCdv()
-  criaLOG()
-  criaDespViajante()
-  criaDiarias()
-  criaDemanda()
+  criaPessoas()
+  criaEndereco()
+  criaClientes()
+  criaVendedores()
+
+  
   
 #trabalhando com o Pandas integrado ao SQL 
 #Por que fazer isso? Para simplificar a apresentação de resultados, já que com o pandas naõ temos
@@ -439,7 +442,7 @@ def criaBD():
 
 #Criando a consulta - query
 #query = '''SELECT * 
-#        FROM FUNCIONARIOS; '''   
+#        FROM PESSOAS; '''   
 # Criando um dataframe a partir de uma consulta (query) qualquer
 #Originalmente segundo argumento é um objeto conexao, nesse caso é a funcao que devolve um objeto
 #df = pd.read_sql_query(query,iniciar_conexao())
@@ -450,30 +453,5 @@ def criaBD():
 
 ##
 #Chamadas para executar na implantação.
-#criaBD()
-#povoa_func(lista)
-#instancia_exemplo()
-#voltaDiarias()
-#print(voltaFunc())
-#n = "THIAGO CAMPOS FURQUIM"
-#s = consultaSQL("SELECT matricula FROM FUNCIONARIOS WHERE nome = \"" +n+ "\"")
-#s2 = voltaMatricula(n)
-#insere = "INSERT INTO FUNCIONARIOS VALUES ('zémane', 22530, '1009', 'DIG.E', 'GOGO290', 'APARECIDA DE GOIANIA', 'GO', 'A', 'B', '62999480661', 'teste@loucura.furnas.com.br')"
-#try:
-#      ins = consultaSQL(insere)     
- #     print("Inserção realizada com sucesso")
-#except sqlite3.Error as e:
-#      print("Ops... Não foi possível realizar a operação: ", e)
-#return ins
-#insere = "INSERT INTO FUNCIONARIOS VALUES ('zémane', 22530, '1009', 'DIG.E', 'GOGO290', 'APARECIDA DE GOIANIA', 'GO', 'A', 'B', '62999480661', 'teste@loucura.furnas.com.br')"
-#ins = consultaSQL(insere)
-#print (voltaValorDiaria('INTERIOR'))
-#print(ins)
-#imprime a consulta
-#print(s, s2)
-
-#verificaBD()
-#viajantes = voltaFunc()
-#print(viajantes)
 
 
