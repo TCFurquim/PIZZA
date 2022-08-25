@@ -1,0 +1,18 @@
+#Esté éo primeiro projeot usando o git:
+Instruções de: https://www.youtube.com/watch?v=2alg7MQ6_sI
+[x] Criar pontos na historia de produção do projeto
+[x] Verificar mudanças no projeto
+[] Começar uma nova funcionalidade no projeto, sem estragar o que já foi feito
+[] Deletar a branch da nova funcionalidade consolidando na master
+[x] colocar o projeto na nuvem
+
+ 'git init' // inicia a linha do tempo
+ 'git add' // adiciona ou atualiza mudanças para irem para a linha do tempo
+ 'git commit' // adiciona um ponto na linha do tempo
+ 'git log' // visualiza os pontos na linha do tempo
+ 'git status' // informa o status das alterações do projeto
+ 'git show' // apresenta determinadoponto na história
+ 'git branch' // gerenciar novas linhas do tempo
+ 'git checkout' // manipula as linha do tempo
+ 'git merge' // unir linhas do tempo
+ 'git push' // envi alterações locais para o repositório remoto
