@@ -317,18 +317,19 @@ cam_csv = ('D:\\Thiago\\Meus Programas\\Python\\Projetos\\PIZZA\\planilhas_base\
 
 def povoa_inicial1(cam_csv):
   #le o csv e coloca a primeira linha como cabecalho
-  dataset = pd.read_csv(cam_csv, sep=';', header=0)
-  
-  #Imprime as 5 primeiras linhas do dataset
-  a = dataset.head()
-  print(a)
-  
-  # Atributo columns retorna o nome das colunas do dataframe.
-  b = dataset.columns
-  print(b)
+  df = pd.read_csv(cam_csv, sep=';',encoding='ISO-8859-1',  header=0)
+  print(type(df))
+  #Verifica o numero de linhas da tabela
+  nlinhas = df.count()
   #manipulaNDO  o data set para gerar datasets espelho das tabelas
     
   #cria uma coluna no dataset que vai ser o id_endereco de PESSOAS e PK de ENDERECO
+  for i in range(nlinhas): df['id_pessoa'][i] = (i)
+  #Imprime as 5 primeiras linhas do dataset
+  print(df.head())
+  # Atributo columns retorna o nome das colunas do dataframe.
+  a = df.columns
+  print(a)
 
 povoa_inicial1(cam_csv)
 
