@@ -324,12 +324,12 @@ def povoa_inicial1(cam_csv):
   #manipulando  o data set para gerar datasets espelho das tabelas
   #cria uma coluna no dataset que vai ser o id_endereco de PESSOAS e PK de ENDERECO
   #inicialmente vamos atribuir 0 a todas as linhas
-  df['id_pessoa'] = 
+  df['id_pessoa'] = 0
   # Percorrendo e atualizando linhas de um dataframe.
   # Atualiza o valor da coluna id_pessoas, utilizando como valor o próprio indice da linha
   # é preciso usar o método at()
-  for indice in df.iterrows():
-    df.at[indice , 'id_pessoa'] = indice
+  for indice, linha in df.iterrows():
+    df.at[indice , 'id_pessoa'] = linha['id_pessoa'] + indice
 
   #Verifica o numero de linhas da tabela
   #nlinhas = df.count()
@@ -342,21 +342,26 @@ def povoa_inicial1(cam_csv):
 
   #Imprime as primeiras 5 linhas
   print(df.head(2))
-  #Criando dfs clones para não alterar o df original e para excluir sletivamente 
+  
+  #Criando dfs clones para não alterar o df original e para excluir seletivamente 
   #para se adequar ao modelo do bd
-  #pessoas = df.copy()
-  #endereco = df.copy()
+  pessoas = df.copy()
+  endereco = df.copy()
   
   #Excluir as colunas 
   # O método drop é usado para excluir dados no dataframe.
   # A opção axis=1 define que queremos excluir uma coluna e não uma linha.
   # O parâmetro inplace define que a alteração irá modificar o objeto em memória.
   
-  #pessoas.drop(['CEP','ENDERECO','NUMERO','COMPLEMENTO','REFERENCIA','BAIRRO'], axis=1, inplace=False)
+  pessoas.drop(['CEP','ENDERECO','NUMERO','COMPLEMENTO','REFERENCIA','BAIRRO'], axis=1, inplace=False)
+  
   #excluindo as colunas extras de endereco...
-  #endereco.drop(['NOME','TELEFONE1','TELEFONE2'], axis=1, inplace=False)
+  endereco.drop(['NOME','TELEFONE1','TELEFONE2'], axis=1, inplace=False)
   #exibindo os 5 primeiros de pessoas:
-  #print(df.head(5))
+  print(pessoas.head(1))
+  print(endereco.head(1))
+  
+
 
 
   
