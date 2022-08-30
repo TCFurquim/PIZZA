@@ -21,6 +21,7 @@
 
 
 import pandas as pd
+import numpy as np
 #Importa as bibliotecas para trabalhar com o sqlite3
 import sqlite3
 #Arquivo do Banco de Dados, utilizado em todos sa funcoes
@@ -303,7 +304,7 @@ def dataBRtoUS(dataBR):
 #uma pessoa possui um endereço principal, que é um  apontador para um campo endereço mais detalhado.
 # #Formato da linha csv:NOME ;TELEFONE1 ;TELEFONE2;CEP;ENDEREÇO;NÚMERO;COMPLEMENTO;REFERÊNCIA;BAIRRO;DATACADASTRO
 #
-#POVOAMENTO DA TABELAS DE PESSOAS, CLIENTES e ENDEREÇO PRINCIPALA PARTIR DE UM ARQUIVO .csv
+#POVOAMENTO DA TABELAS DE PESSOAS, CLIENTES e ENDEREÇO PRINCIPAL A PARTIR DE UM ARQUIVO .csv
 # Observações: abre fecho o banco dentro do procedimento 
 
 #Abordagem 1: 
@@ -318,21 +319,51 @@ cam_csv = ('D:\\Thiago\\Meus Programas\\Python\\Projetos\\PIZZA\\planilhas_base\
 def povoa_inicial1(cam_csv):
   #le o csv e coloca a primeira linha como cabecalho
   df = pd.read_csv(cam_csv, sep=';',encoding='ISO-8859-1',  header=0)
-  print(type(df))
-  #Verifica o numero de linhas da tabela
-  nlinhas = df.count()
-  #manipulaNDO  o data set para gerar datasets espelho das tabelas
-    
+  #print(type(df))
+     
+  #manipulando  o data set para gerar datasets espelho das tabelas
   #cria uma coluna no dataset que vai ser o id_endereco de PESSOAS e PK de ENDERECO
-  for i in range(nlinhas): df['id_pessoa'][i] = (i)
-  #Imprime as 5 primeiras linhas do dataset
-  print(df.head())
+  #inicialmente vamos atribuir 0 a todas as linhas
+  df['id_pessoa'] = 
+  # Percorrendo e atualizando linhas de um dataframe.
+  # Atualiza o valor da coluna id_pessoas, utilizando como valor o próprio indice da linha
+  # é preciso usar o método at()
+  for indice in df.iterrows():
+    df.at[indice , 'id_pessoa'] = indice
+
+  #Verifica o numero de linhas da tabela
+  #nlinhas = df.count()
+  #print("o numero de linhas da planilha/tabela é:")
+  #print(nlinhas)
+  
   # Atributo columns retorna o nome das colunas do dataframe.
-  a = df.columns
-  print(a)
+  #a = df.columns
+  #print("Colunas: " +a)
+
+  #Imprime as primeiras 5 linhas
+  print(df.head(2))
+  #Criando dfs clones para não alterar o df original e para excluir sletivamente 
+  #para se adequar ao modelo do bd
+  #pessoas = df.copy()
+  #endereco = df.copy()
+  
+  #Excluir as colunas 
+  # O método drop é usado para excluir dados no dataframe.
+  # A opção axis=1 define que queremos excluir uma coluna e não uma linha.
+  # O parâmetro inplace define que a alteração irá modificar o objeto em memória.
+  
+  #pessoas.drop(['CEP','ENDERECO','NUMERO','COMPLEMENTO','REFERENCIA','BAIRRO'], axis=1, inplace=False)
+  #excluindo as colunas extras de endereco...
+  #endereco.drop(['NOME','TELEFONE1','TELEFONE2'], axis=1, inplace=False)
+  #exibindo os 5 primeiros de pessoas:
+  #print(df.head(5))
+
+
+  
+
+
 
 povoa_inicial1(cam_csv)
-
 
 
 
